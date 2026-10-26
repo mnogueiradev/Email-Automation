@@ -3,7 +3,7 @@ requires = ["setuptools>=69,<82"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cv-automation"
+name = "email-automation"
 version = "0.1.0"
 description = "Modular email automation platform with a persistent, security-first foundation."
 readme = "README.md"
@@ -26,8 +26,8 @@ dev = [
 ]
 
 [project.scripts]
-cv-automation-api = "app.cli:run_api"
-cv-automation-worker = "app.worker_cli:main"
+email-automation-api = "app.cli:run_api"
+email-automation-worker = "app.worker_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["app*"]

@@ -3,7 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -16,7 +16,7 @@ from app.api.schemas import (
     SuppressionRead,
 )
 from app.domain.email import normalize_email
-from app.infrastructure.database.models import Contact, EmailSuppression
+from app.infrastructure.database.models import Contact, EmailJob, EmailSuppression
 from app.infrastructure.database.session import get_database_session
 
 router = APIRouter(
@@ -117,6 +117,25 @@ def update_contact(
         ) from exc
     session.refresh(contact)
     return contact
+
+
+@router.delete("/contacts/{contact_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_contact(contact_id: int, session: DatabaseSession) -> None:
+    """Remove a contact while preserving recipient snapshots in existing jobs."""
+
+    contact = session.scalar(
+        select(Contact).where(Contact.id == contact_id).with_for_update()
+    )
+    if contact is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contato não encontrado.")
+
+    session.execute(
+        update(EmailJob)
+        .where(EmailJob.contact_id == contact_id)
+        .values(contact_id=None)
+    )
+    session.delete(contact)
+    session.commit()
 
 
 @router.post("/suppressions", response_model=SuppressionRead, status_code=status.HTTP_201_CREATED)

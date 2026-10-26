@@ -27,8 +27,9 @@ FastAPI / Uvicorn (127.0.0.1 por padrão)
 - `campaigns` registra estado e agendamento.
 - `email_jobs` é a fila durável, com snapshot do destinatário, disponibilidade, lease e resultado do envio.
 - `email_attempts` guarda resultado estruturado de cada tentativa, sem corpo de mensagem nem texto SMTP bruto.
+- `email_job_events` mantém o histórico de decisões operacionais manuais, com justificativa e confirmação explícita de risco de duplicação em retentativas.
 
-Os campos de estado são strings controladas pela aplicação. Datas usam UTC. Os endpoints de domínio só aceitam conexões loopback e exigem token Bearer. A API só cria templates; ainda não os edita. O agendamento cria uma campanha elegível para o worker; ele só envia quando o processo `cv-automation-worker` é iniciado explicitamente. O worker consulta supressões novamente antes de enviar, pois um endereço pode ser bloqueado depois de entrar na fila.
+Os campos de estado são strings controladas pela aplicação. Datas usam UTC. Os endpoints de domínio só aceitam conexões loopback e exigem token Bearer. A API só cria templates; ainda não os edita. O agendamento cria uma campanha elegível para o worker; ele só envia quando o processo `email-automation-worker` é iniciado explicitamente. O worker consulta supressões novamente antes de enviar, pois um endereço pode ser bloqueado depois de entrar na fila.
 
 ## Fila e entrega
 
@@ -37,6 +38,7 @@ Os campos de estado são strings controladas pela aplicação. Datas usam UTC. O
 - Uma tentativa SMTP sem resultado persistido quando o lease expira passa para `uncertain` e não é repetida automaticamente. Falhas de transporte com resposta SMTP 4xx usam retentativa exponencial; 5xx encerram como falha.
 - A conclusão verifica a mesma data de lease usada na reserva. Isso impede um worker atrasado de sobrescrever a decisão de outro worker depois que perdeu a posse do job.
 - O aceite SMTP seguido de falha ao gravar no TiDB ainda deixa uma janela de resultado ambíguo. Esse caso exige revisão manual; SMTP não fornece uma chave idempotente que torne TiDB e o servidor de e-mail uma transação única.
+- A API permite consultar tentativas e eventos e resolver jobs `failed` ou `uncertain` como `sent`, `failed` ou novamente `pending`. A decisão e a justificativa são gravadas na mesma transação que atualiza o job; uma retentativa manual exige confirmação do risco de envio duplicado.
 - A supressão é consultada imediatamente antes da chamada SMTP. Uma supressão inserida depois dessa checagem pode competir com um envio já iniciado.
 - Campanhas terminam como `completed` ou `completed_with_issues`; jobs individuais usam `pending`, `processing`, `sent`, `failed`, `suppressed` ou `uncertain`.
 
@@ -51,12 +53,12 @@ O conteúdo do template é carregado no início de cada tentativa. A API não po
 - A URL do banco é criada por campos separados, sem interpolar manualmente usuário e senha.
 - A inicialização da API não abre conexão com o TiDB.
 - O usuário runtime mantém permissões DML; migrações devem usar uma sessão de implantação com privilégio DDL.
-- A migração inicial é aditiva e não oferece downgrade automático.
+- As migrações são aditivas e não oferecem downgrade automático; a revisão `20261017_0002` adiciona a trilha de auditoria de resoluções.
 - O envio exige configuração SMTP local e não é iniciado junto com a API.
 
 ## Próximas etapas
 
-1. Configurar e verificar o servidor SMTP e o endereço remetente antes de iniciar o worker.
-2. Adicionar uma ferramenta operacional para revisar jobs `uncertain` e resolver falhas.
+1. Aplicar a revisão `20261017_0002` no TiDB antes de usar as rotas de histórico e resolução manual.
+2. Configurar e verificar o servidor SMTP e o endereço remetente antes de iniciar o worker.
 3. Versionar o conteúdo usado por campanhas agendadas antes de permitir edição de templates.
 4. Definir necessidade e proteção de rotas públicas, como descadastro.

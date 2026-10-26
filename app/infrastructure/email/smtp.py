@@ -11,6 +11,15 @@ from app.config import Settings
 
 
 @dataclass(frozen=True)
+class OutboundAttachment:
+    """Binary attachment to include without interpreting its file type."""
+
+    filename: str
+    content_type: str
+    content: bytes
+
+
+@dataclass(frozen=True)
 class OutboundMessage:
     """Rendered email data needed by a transport."""
 
@@ -18,6 +27,7 @@ class OutboundMessage:
     subject: str
     body_text: str
     body_html: str | None
+    attachments: tuple[OutboundAttachment, ...] = ()
 
 
 class TransportFailure(Exception):
@@ -142,6 +152,17 @@ class SMTPTransport:
         message.set_content(outbound.body_text)
         if outbound.body_html is not None:
             message.add_alternative(outbound.body_html, subtype="html")
+        for attachment in outbound.attachments:
+            maintype, separator, subtype = attachment.content_type.partition("/")
+            if not separator or not maintype or not subtype:
+                maintype, subtype = "application", "octet-stream"
+            subtype = subtype.split(";", 1)[0].strip() or "octet-stream"
+            message.add_attachment(
+                attachment.content,
+                maintype=maintype,
+                subtype=subtype,
+                filename=attachment.filename,
+            )
         return message
 
     def _authenticate(self, server: smtplib.SMTP) -> None:

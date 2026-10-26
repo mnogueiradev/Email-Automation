@@ -4,6 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     ForeignKey,
     Index,
     Integer,
@@ -13,7 +14,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.mysql import DATETIME
+from sqlalchemy.dialects.mysql import DATETIME, LONGBLOB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -94,6 +95,7 @@ class Campaign(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(160), nullable=False)
+    subject: Mapped[str | None] = mapped_column(String(998))
     template_id: Mapped[int | None] = mapped_column(
         BigInteger,
         ForeignKey("email_templates.id", name="fk_campaigns_template_id_email_templates"),
@@ -104,6 +106,25 @@ class Campaign(TimestampMixin, Base):
     scheduled_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=6))
 
     __table_args__ = (Index("ix_campaigns_status_scheduled_at", "status", "scheduled_at"),)
+
+
+class CampaignAttachment(TimestampMixin, Base):
+    """A binary attachment stored with a draft campaign until delivery."""
+
+    __tablename__ = "campaign_attachments"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    campaign_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("campaigns.id", name="fk_campaign_attachments_campaign_id_campaigns"),
+        nullable=False,
+    )
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(255), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    content: Mapped[bytes] = mapped_column(LONGBLOB(), nullable=False)
+
+    __table_args__ = (Index("ix_campaign_attachments_campaign_id", "campaign_id"),)
 
 
 class EmailJob(TimestampMixin, Base):
@@ -172,3 +193,31 @@ class EmailAttempt(Base):
         UniqueConstraint("job_id", "attempt_number", name="uq_email_attempts_job_number"),
         Index("ix_email_attempts_job_id", "job_id"),
     )
+
+
+class EmailJobEvent(Base):
+    """Append-only operational history for a manually resolved queue job."""
+
+    __tablename__ = "email_job_events"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    job_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("email_jobs.id", name="fk_email_job_events_job_id_email_jobs"),
+        nullable=False,
+    )
+    event_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    previous_status: Mapped[str] = mapped_column(String(24), nullable=False)
+    new_status: Mapped[str] = mapped_column(String(24), nullable=False)
+    actor: Mapped[str] = mapped_column(
+        String(80), nullable=False, server_default=text("'local_api'")
+    )
+    duplicate_risk_acknowledged: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("0")
+    )
+    note: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DATETIME(fsp=6), nullable=False, server_default=text("CURRENT_TIMESTAMP(6)")
+    )
+
+    __table_args__ = (Index("ix_email_job_events_job_created", "job_id", "created_at"),)

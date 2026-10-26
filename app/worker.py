@@ -6,23 +6,29 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
-from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings, get_settings
+from app.infrastructure.database.campaign_state import refresh_campaign_status
 from app.infrastructure.database.models import (
     Campaign,
+    CampaignAttachment,
     EmailAttempt,
     EmailJob,
     EmailSuppression,
-    EmailTemplate,
 )
 from app.infrastructure.database.session import (
     dispose_database_engine,
     get_session_factory,
 )
-from app.infrastructure.email.smtp import OutboundMessage, SMTPTransport, TransportFailure
+from app.infrastructure.email.smtp import (
+    OutboundAttachment,
+    OutboundMessage,
+    SMTPTransport,
+    TransportFailure,
+)
 from app.logging_config import configure_logging
 
 logger = logging.getLogger("app.worker")
@@ -124,7 +130,7 @@ def claim_ready_jobs(
     campaign_ids = {int(row.campaign_id) for row in rows}
     if not job_ids:
         for campaign_id in campaign_ids:
-            _refresh_campaign_status(session, campaign_id)
+            refresh_campaign_status(session, campaign_id)
         session.commit()
         return []
 
@@ -139,7 +145,7 @@ def claim_ready_jobs(
         .values(status="sending")
     )
     for campaign_id in campaign_ids:
-        _refresh_campaign_status(session, campaign_id)
+        refresh_campaign_status(session, campaign_id)
     session.commit()
     return [ClaimedJob(job_id=job_id, lease_until=lease_until) for job_id in job_ids]
 
@@ -147,7 +153,7 @@ def claim_ready_jobs(
 def prepare_delivery(
     factory: sessionmaker[Session], claimed: ClaimedJob
 ) -> PreparedDelivery | None:
-    """Recheck suppression, load the template, and persist the attempt before SMTP."""
+    """Recheck suppression and persist the attempt before SMTP."""
 
     with factory() as session:
         job = session.scalar(
@@ -172,25 +178,35 @@ def prepare_delivery(
             job.status = "suppressed"
             job.locked_until = None
             job.last_error_code = "suppressed_before_delivery"
-            _refresh_campaign_status(session, job.campaign_id)
+            refresh_campaign_status(session, job.campaign_id)
             session.commit()
             logger.info("job_suppressed_before_delivery id=%s", job.id)
             return None
 
         campaign = session.get(Campaign, job.campaign_id)
-        template = (
-            session.get(EmailTemplate, campaign.template_id)
-            if campaign is not None and campaign.template_id is not None
-            else None
-        )
-        if template is None:
+        if campaign is None:
             job.status = "failed"
             job.locked_until = None
-            job.last_error_code = "campaign_template_unavailable"
-            _refresh_campaign_status(session, job.campaign_id)
+            job.last_error_code = "campaign_unavailable"
+            refresh_campaign_status(session, job.campaign_id)
             session.commit()
-            logger.error("job_failed_missing_template id=%s", job.id)
+            logger.error("job_failed_missing_campaign id=%s", job.id)
             return None
+
+        attachment = session.scalar(
+            select(CampaignAttachment).where(CampaignAttachment.campaign_id == job.campaign_id)
+        )
+        attachments = (
+            (
+                OutboundAttachment(
+                    filename=attachment.filename,
+                    content_type=attachment.content_type,
+                    content=attachment.content,
+                ),
+            )
+            if attachment is not None
+            else ()
+        )
 
         attempt_number = job.attempt_count + 1
         job.attempt_count = attempt_number
@@ -205,9 +221,10 @@ def prepare_delivery(
             attempt_number=attempt_number,
             message=OutboundMessage(
                 recipient=job.recipient_email,
-                subject=template.subject,
-                body_text=template.body_text,
-                body_html=template.body_html,
+                subject=campaign.subject or campaign.name,
+                body_text="",
+                body_html=None,
+                attachments=attachments,
             ),
         )
         session.commit()
@@ -283,7 +300,7 @@ def finish_delivery(
         attempt.error_code = error_code
         attempt.smtp_response_code = response_code
         attempt.finished_at = now
-        _refresh_campaign_status(session, job.campaign_id)
+        refresh_campaign_status(session, job.campaign_id)
         session.commit()
         return True
 
@@ -294,35 +311,6 @@ def _retry_delay(attempt_number: int, settings: Settings) -> int:
         settings.worker_retry_base_seconds * (2**exponent),
         settings.worker_retry_max_seconds,
     )
-
-
-def _refresh_campaign_status(session: Session, campaign_id: int) -> None:
-    campaign = session.scalar(
-        select(Campaign).where(Campaign.id == campaign_id).with_for_update()
-    )
-    if campaign is None or campaign.status not in ("scheduled", "sending"):
-        return
-
-    active_count = session.scalar(
-        select(func.count())
-        .select_from(EmailJob)
-        .where(
-            EmailJob.campaign_id == campaign_id,
-            EmailJob.status.in_(("pending", "processing")),
-        )
-    )
-    if active_count:
-        return
-
-    issue_count = session.scalar(
-        select(func.count())
-        .select_from(EmailJob)
-        .where(
-            EmailJob.campaign_id == campaign_id,
-            EmailJob.status.in_(("failed", "uncertain")),
-        )
-    )
-    campaign.status = "completed_with_issues" if issue_count else "completed"
 
 
 def process_claimed_job(

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b1220" />
+    <meta name="description" content="Painel local de automação de e-mails" />
+    <title>Email-Automation · Command Center</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/dark.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navegação principal">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <strong>Email-Automation</strong>
+            <small>Command Center</small>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-section="overview"><span class="nav-icon">⌂</span>Visão geral</button>
+          <button class="nav-item" data-section="contacts"><span class="nav-icon">◎</span>Contatos</button>
+          <button class="nav-item" data-section="templates"><span class="nav-icon">▤</span>Templates</button>
+          <button class="nav-item" data-section="campaigns"><span class="nav-icon">↗</span>Campanhas</button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="connection-card">
+            <span class="status-dot" id="sidebar-status-dot"></span>
+            <div><strong id="sidebar-status">Verificando API</strong><small id="sidebar-status-detail">Aguarde um instante</small></div>
+          </div>
+          <button class="nav-item muted" data-section="settings"><span class="nav-icon">⚙</span>Configuração</button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><span>Workspace</span><b>/</b><strong id="page-title">Visão geral</strong></div>
+          <div class="topbar-actions">
+            <button class="icon-button" id="refresh-button" title="Atualizar dados" aria-label="Atualizar dados">↻</button>
+            <div class="avatar" title="Ambiente local">L</div>
+          </div>
+        </header>
+
+        <div class="content-wrap">
+          <section class="section-view active" id="overview-section">
+            <div class="hero-row">
+              <div>
+                <p class="eyebrow">PAINEL OPERACIONAL</p>
+                <h1>Bom dia, <span>seu workspace</span>.</h1>
+                <p class="subtitle">Acompanhe sua operação de e-mail em um só lugar.</p>
+              </div>
+              <button class="primary-button" id="hero-refresh">Atualizar visão <span>↻</span></button>
+            </div>
+
+            <div class="notice hidden" id="auth-notice" role="status">
+              <div class="notice-icon">!</div>
+              <div><strong>Conecte o painel à API</strong><p>Informe o Bearer token na área de configuração para carregar seus dados reais.</p></div>
+              <button class="text-button" data-section="settings">Configurar agora →</button>
+            </div>
+
+            <div class="metric-grid" aria-label="Indicadores principais">
+              <article class="metric-card accent-purple"><div class="metric-label">Contatos totais <span class="metric-symbol">◎</span></div><strong id="metric-contacts">—</strong><small id="metric-contacts-detail">aguardando dados</small></article>
+              <article class="metric-card accent-cyan"><div class="metric-label">Campanhas ativas <span class="metric-symbol">↗</span></div><strong id="metric-campaigns">—</strong><small id="metric-campaigns-detail">aguardando dados</small></article>
+              <article class="metric-card accent-orange"><div class="metric-label">Jobs na fila <span class="metric-symbol">◷</span></div><strong id="metric-jobs">—</strong><small id="metric-jobs-detail">aguardando dados</small></article>
+              <article class="metric-card accent-green"><div class="metric-label">Taxa de entrega <span class="metric-symbol">✓</span></div><strong id="metric-delivery">—</strong><small id="metric-delivery-detail">aguardando dados</small></article>
+            </div>
+
+            <div class="dashboard-grid">
+              <article class="panel activity-panel">
+                <div class="panel-heading"><div><h2>Atividade de envios</h2><p>Jobs por campanha e estado atual</p></div><span class="period-pill">Todos os dados</span></div>
+                <div class="activity-chart" id="activity-chart" role="img" aria-label="Gráfico de atividade de envios"></div>
+                <div class="chart-legend"><span><i class="legend-dot sent"></i>Enviados</span><span><i class="legend-dot pending"></i>Na fila</span><span><i class="legend-dot issue"></i>Com problema</span></div>
+              </article>
+
+              <article class="panel status-panel">
+                <div class="panel-heading"><div><h2>Distribuição da fila</h2><p>Status dos jobs</p></div></div>
+                <div class="status-chart" id="status-chart"></div>
+                <div class="status-table" id="status-table"></div>
+              </article>
+            </div>
+
+            <div class="panel campaigns-panel">
+              <div class="panel-heading"><div><h2>Campanhas recentes</h2><p>Visão rápida dos seus disparos</p></div><button class="text-button" data-section="campaigns">Ver todas →</button></div>
+              <div class="table-wrap"><table><thead><tr><th>Campanha</th><th>Status</th><th>Envio</th><th>Destinatários</th><th></th></tr></thead><tbody id="campaigns-table-body"></tbody></table></div>
+            </div>
+          </section>
+
+          <section class="section-view" id="contacts-section">
+            <div class="section-heading"><div><p class="eyebrow">AUDIÊNCIA</p><h1>Contatos</h1><p class="subtitle">Sua base de destinatários e respectivos estados.</p></div><div class="section-actions"><button class="secondary-button" id="toggle-contact-form">+ Adicionar contatos</button><button class="primary-button" id="contacts-refresh">Atualizar <span>↻</span></button></div></div>
+            <div class="panel contact-form-panel hidden" id="contact-form-panel">
+              <div class="panel-heading"><div><h2 id="contact-form-title">Novo contato</h2><p>Adicione um ou vários destinatários manualmente.</p></div><button class="close-button" id="close-contact-form" aria-label="Fechar formulário">×</button></div>
+              <form id="contact-form">
+                <div class="form-grid"><div class="form-field form-field-wide"><label for="contact-emails">E-mails de destino <span>*</span></label><textarea id="contact-emails" required rows="4" placeholder="destinatario@empresa.com\noutro@empresa.com"></textarea><small>Use um endereço por linha; vírgulas e ponto e vírgulas também são aceitos.</small></div><div class="form-field"><label for="contact-name">Nome de exibição</label><input id="contact-name" maxlength="200" placeholder="Opcional" /></div><div class="form-field"><label for="contact-organization">Organização</label><input id="contact-organization" maxlength="200" placeholder="Opcional" /></div><div class="form-field"><label for="contact-role">Cargo</label><input id="contact-role" maxlength="200" placeholder="Opcional" /></div></div>
+                <div class="form-footer"><p class="form-feedback" id="contact-form-feedback" role="status"></p><button class="primary-button" id="contact-submit" type="submit">Salvar contatos <span>→</span></button></div>
+              </form>
+            </div>
+            <div class="resource-summary" id="contacts-summary"></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Nome</th><th>Organização</th><th>Status</th><th>Atualizado</th><th>Ações</th></tr></thead><tbody id="contacts-table-body"></tbody></table></div></div>
+          </section>
+
+          <section class="section-view" id="templates-section"><div class="section-heading"><div><p class="eyebrow">CONTEÚDO</p><h1>Templates</h1><p class="subtitle">Conteúdo reutilizável para suas campanhas.</p></div><button class="primary-button" id="templates-refresh">Atualizar <span>↻</span></button></div><div class="template-grid" id="templates-grid"></div></section>
+
+          <section class="section-view" id="campaigns-section">
+            <div class="section-heading"><div><p class="eyebrow">PLANEJAMENTO E ENTREGA</p><h1>Campanhas</h1><p class="subtitle">Defina o assunto, escolha os destinatários e envie sua mensagem.</p></div><div class="section-actions"><button class="secondary-button" id="new-campaign-button">+ Nova campanha</button><button class="primary-button" id="campaigns-refresh">Atualizar <span>↻</span></button></div></div>
+            <div class="panel campaign-planner hidden" id="campaign-planner">
+              <div class="panel-heading"><div><h2 id="campaign-planner-title">Nova campanha</h2><p>Defina a identificação, o assunto, os destinatários e envie quando estiver pronto.</p></div><button class="close-button" id="close-campaign-planner" aria-label="Fechar planejador">×</button></div>
+              <form id="campaign-form">
+                <input id="campaign-id" type="hidden" />
+                <div class="planner-top-grid"><div class="form-field"><label for="campaign-name">Título <span>*</span></label><input id="campaign-name" required maxlength="160" placeholder="Ex.: Apresentação para empresas de tecnologia" /></div><div class="form-field"><label for="campaign-subject">Assunto <span>*</span></label><input id="campaign-subject" required maxlength="998" placeholder="Ex.: Uma ideia para sua próxima campanha" /></div><div class="form-field attachment-field"><label for="campaign-attachment">Anexo</label><input id="campaign-attachment" type="file" /><small id="campaign-attachment-help">Qualquer tipo de arquivo, até 25 MB. O anexo será enviado junto com a campanha.</small></div></div>
+                <div class="recipient-picker"><div class="picker-heading"><div><h3>Destinatários <span id="recipient-count">0 selecionados</span></h3><p>Selecione somente os contatos que devem receber esta campanha.</p></div><div class="picker-tools"><input id="recipient-search" type="search" placeholder="Filtrar contatos" /><button class="text-button" id="select-all-recipients" type="button">Selecionar visíveis</button><button class="text-button" id="clear-recipients" type="button">Limpar</button></div></div><div class="recipient-list" id="recipient-list"></div></div>
+                <div class="form-footer"><p class="form-feedback" id="campaign-form-feedback" role="status"></p><div class="planner-actions"><button class="danger-button hidden" id="delete-campaign-button" type="button">Excluir rascunho</button><button class="secondary-button" id="save-campaign-draft" type="submit">Salvar rascunho</button><button class="primary-button" id="send-campaign-button" type="button">Enviar <span>→</span></button></div></div>
+              </form>
+            </div>
+            <div class="campaign-cards" id="campaign-cards"></div>
+          </section>
+
+          <section class="section-view" id="settings-section"><div class="section-heading"><div><p class="eyebrow">AMBIENTE LOCAL</p><h1>Configuração</h1><p class="subtitle">Conexões usadas pelo painel no seu navegador.</p></div></div><div class="settings-grid"><article class="panel settings-panel"><div class="panel-heading"><div><h2>Acesso à API</h2><p>O token fica salvo apenas no localStorage deste navegador.</p></div><span class="settings-lock">⌘</span></div><label for="api-token">Bearer token</label><div class="token-row"><input id="api-token" type="password" autocomplete="off" placeholder="Cole seu CV_AUTOMATION_API_TOKEN" /><button class="primary-button" id="save-token">Salvar token</button></div><p class="form-help" id="token-feedback">O painel nunca lê o arquivo .env diretamente.</p></article><article class="panel settings-panel"><div class="panel-heading"><div><h2>Saúde do serviço</h2><p>Estado da aplicação local.</p></div><span class="health-badge" id="health-badge">—</span></div><dl class="health-list"><div><dt>API</dt><dd id="health-api">Verificando…</dd></div><div><dt>Banco</dt><dd>Usado sob demanda</dd></div><div><dt>Worker</dt><dd>Processo separado</dd></div><div><dt>Endpoint</dt><dd id="health-endpoint">/health/live</dd></div></dl></article></div></section>
+        </div>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

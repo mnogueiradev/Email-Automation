@@ -1,1 +1,1 @@
-"""CV-Automation application package."""
+"""Email-Automation application package."""

@@ -1,0 +1,88 @@
+/* Email-Automation · Night Ops theme, informed by OpenDesign principles */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+:root {
+  --ink: #edf2fb;
+  --ink-soft: #a9b5c9;
+  --ink-faint: #718099;
+  --surface: #0b1220;
+  --surface-raised: #121d2f;
+  --surface-high: #1a2940;
+  --surface-tint: #0f192a;
+  --line: rgba(165, 184, 214, .14);
+  --line-strong: #30415b;
+  --purple: #4da3ff;
+  --cyan: #55ddd1;
+  --orange: #f2b35d;
+  --green: #6fe0a5;
+  --red: #ff879c;
+  --sidebar: #080f1b;
+  --sidebar-soft: #162339;
+  --shadow-sm: 0 3px 12px rgba(0, 0, 0, .16);
+  --shadow: 0 14px 34px rgba(0, 0, 0, .22);
+  --shadow-lg: 0 24px 65px rgba(0, 0, 0, .3);
+  --primary: #0c5cab;
+  --primary-deep: #0a4a8a;
+}
+
+html, body { background: #09090b; }
+body { color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+.hero-row h1, .section-heading h1, .panel-heading h2, .picker-heading h3, .template-card h3, .campaign-card h3, .brand strong { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+.metric-card strong, .summary-chip strong, .campaign-id, .health-list dd { font-family: 'JetBrains Mono', monospace; }
+
+.sidebar { background: linear-gradient(180deg, #080f1b 0%, #0b1423 100%); border-right-color: rgba(166,184,214,.11); box-shadow: 10px 0 35px rgba(0,0,0,.22); }
+.brand-mark { box-shadow: 0 9px 25px rgba(116,103,232,.3); }
+.nav-item.active { border-color: rgba(169,149,255,.24); background: linear-gradient(90deg, rgba(116,103,232,.27), rgba(94,234,212,.07)); box-shadow: inset 3px 0 var(--purple), 0 8px 25px rgba(0,0,0,.12); }
+.connection-card { border-color: rgba(166,184,214,.13); background: rgba(255,255,255,.035); }
+.main-content { background: radial-gradient(circle at 86% -8%, rgba(116,103,232,.15), transparent 30%), radial-gradient(circle at 20% 30%, rgba(14,159,154,.045), transparent 27%), var(--surface); }
+.topbar { border-bottom-color: rgba(165,184,214,.13); background: rgba(11,18,32,.84); }
+.icon-button { border-color: var(--line); color: var(--ink-soft); background: var(--surface-raised); }
+.icon-button:hover { border-color: rgba(169,149,255,.55); color: var(--purple); }
+.avatar { border-color: var(--surface-raised); }
+.eyebrow { color: var(--cyan); }
+.hero-row h1, .section-heading h1 { color: var(--ink); }
+.subtitle { color: var(--ink-soft); }
+.primary-button { border-color: #2381d0; background: linear-gradient(135deg, var(--primary), var(--primary-deep)); box-shadow: 0 9px 25px rgba(12,92,171,.25); }
+.primary-button:hover { border-color: #4da3ff; background: linear-gradient(135deg, #1370c0, #0c5cab); box-shadow: 0 12px 27px rgba(12,92,171,.35); }
+.secondary-button { border-color: rgba(169,149,255,.32); color: var(--purple); background: rgba(169,149,255,.07); box-shadow: var(--shadow-sm); }
+.secondary-button:hover { border-color: rgba(169,149,255,.62); color: #c8c0ff; background: rgba(169,149,255,.13); }
+.danger-button { border-color: rgba(255,135,156,.3); color: var(--red); background: rgba(255,135,156,.07); }
+.danger-button:hover { border-color: rgba(255,135,156,.65); background: rgba(255,135,156,.13); }
+.text-button { color: var(--cyan); }.text-button:hover { color: #b8fff3; }
+.notice { border-color: rgba(242,179,93,.3); background: rgba(242,179,93,.08); box-shadow: var(--shadow-sm); }.notice-icon { color: #1b1720; background: var(--orange); }.notice strong { color: var(--orange); }.notice p { color: #bda987; }.notice .text-button { color: var(--orange); }
+.metric-card, .panel, .summary-chip, .template-card, .campaign-card { border-color: var(--line); background: linear-gradient(145deg, rgba(20,31,49,.98), rgba(16,27,44,.98)); box-shadow: var(--shadow); }
+.metric-card:hover, .summary-chip:hover { border-color: rgba(169,149,255,.25); }
+.metric-label { color: var(--ink-soft); }.metric-symbol { color: var(--purple); background: rgba(169,149,255,.13); }.accent-cyan .metric-symbol { color: var(--cyan); background: rgba(94,234,212,.11); }.accent-orange .metric-symbol { color: var(--orange); background: rgba(242,179,93,.12); }.accent-green .metric-symbol { color: var(--green); background: rgba(111,224,165,.11); }.metric-card strong { color: var(--ink); }.metric-card small { color: var(--ink-faint); }
+.panel-heading h2, .picker-heading h3, .template-card h3, .campaign-card h3 { color: var(--ink); }.panel-heading p, .picker-heading p { color: var(--ink-faint); }.period-pill { border-color: var(--line); color: var(--ink-faint); background: rgba(255,255,255,.035); }
+.activity-chart { border-bottom-color: var(--line); background: repeating-linear-gradient(to bottom, transparent 0, transparent 47px, rgba(165,184,214,.09) 48px); }.chart-labels { color: var(--ink-faint); }.chart-legend { color: var(--ink-soft); }
+.status-chart::after { background: var(--surface-raised); }.status-chart.empty { background: #26354b; }.status-row { color: var(--ink-soft); }.status-row strong { color: var(--ink); }
+.campaigns-panel { background: linear-gradient(145deg, rgba(20,31,49,.98), rgba(16,27,44,.98)); }.table-wrap th { color: var(--ink-faint); border-bottom-color: var(--line); }.table-wrap td { color: var(--ink-soft); border-bottom-color: rgba(165,184,214,.09); }.table-wrap tr:hover td { background: rgba(169,149,255,.045); }.campaign-name { color: var(--ink); }.campaign-id { color: var(--ink-faint); }
+.badge-draft { color: #a9b5c9; background: rgba(169,181,201,.12); }.badge-scheduled, .badge-sending { color: var(--cyan); background: rgba(85,221,209,.11); }.badge-completed { color: var(--green); background: rgba(111,224,165,.11); }.badge-issue { color: var(--orange); background: rgba(242,179,93,.12); }.badge-failed { color: var(--red); background: rgba(255,135,156,.12); }
+.empty-state { color: var(--ink-faint); }.empty-state strong { color: var(--ink-soft); }
+.summary-chip strong { color: var(--ink); }.summary-chip span { color: var(--ink-faint); }
+.template-card:hover, .campaign-card:hover { border-color: rgba(169,149,255,.38); box-shadow: 0 22px 50px rgba(0,0,0,.29); }.template-card p { color: var(--ink-soft); }.card-meta, .card-lock { color: var(--ink-faint); }.campaign-card dt { color: var(--ink-faint); }.campaign-card dd { color: var(--ink-soft); }.card-actions { border-top-color: var(--line); }
+.close-button { border-color: var(--line); color: var(--ink-faint); background: rgba(255,255,255,.035); }.close-button:hover { color: var(--ink); background: var(--surface-high); }
+.form-field label { color: var(--ink-soft); }.form-field label span { color: var(--cyan); }.form-field input, .form-field textarea, .form-field select, .token-row input { border-color: var(--line-strong); color: var(--ink); background: #0c1728; }.form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: rgba(169,149,255,.7); background: #111e32; box-shadow: 0 0 0 4px rgba(169,149,255,.12); }.form-field small, .form-help { color: var(--ink-faint); }.form-feedback { color: var(--ink-soft); }.form-feedback.error { color: var(--red); }.form-feedback.success { color: var(--green); }.form-footer { border-top-color: var(--line); }
+.recipient-picker { border-color: var(--line); background: #0d1829; }.picker-heading { border-bottom-color: var(--line); }.picker-heading h3 span { color: var(--cyan); }.picker-tools input { border-color: var(--line-strong); color: var(--ink); background: var(--surface-raised); }.recipient-option:hover { border-color: rgba(169,149,255,.3); background: rgba(169,149,255,.07); }.recipient-check { border-color: #52627b; background: #101e31; }.recipient-option input:checked + .recipient-check { border-color: var(--purple); background: var(--purple); box-shadow: inset 0 0 0 4px #101e31; }.recipient-copy strong { color: var(--ink); }.recipient-copy small { color: var(--ink-faint); }.table-action { color: var(--cyan); }.table-action:hover { color: #b8fff3; }.table-action.danger { color: var(--red); }
+.settings-lock { color: var(--purple); }.health-badge { color: var(--orange); background: rgba(242,179,93,.12); }.health-badge.online { color: var(--green); background: rgba(111,224,165,.12); }.health-list div { border-bottom-color: var(--line); }.health-list dt { color: var(--ink-faint); }.health-list dd { color: var(--ink-soft); }
+.toast { border-color: rgba(111,224,165,.3); color: #9bf0c2; background: #12372d; box-shadow: var(--shadow-lg); }
+
+/* Workspace refinements: a restrained operations studio rather than a decorative dashboard. */
+.main-content { background: radial-gradient(circle at 92% -12%, rgba(12,92,171,.16), transparent 31%), var(--surface); }
+.topbar { background: rgba(9,9,11,.88); backdrop-filter: blur(14px); }
+.content-wrap { max-width: 1440px; padding-top: 40px; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .14em; }
+.hero-row h1, .section-heading h1 { letter-spacing: -.035em; }
+.panel, .metric-card, .summary-chip, .template-card, .campaign-card { background: #111827; box-shadow: 0 12px 30px rgba(0,0,0,.2); }
+.panel-heading h2, .picker-heading h3 { letter-spacing: -.015em; }
+.metric-card { min-height: 132px; }
+.metric-card:hover, .summary-chip:hover { border-color: rgba(77,163,255,.42); transform: translateY(-1px); }
+.nav-item.active { border-color: rgba(77,163,255,.28); background: linear-gradient(90deg, rgba(12,92,171,.28), rgba(85,221,209,.06)); box-shadow: inset 3px 0 var(--purple), 0 8px 25px rgba(0,0,0,.12); }
+.form-field input:focus, .form-field textarea:focus, .form-field select:focus, .token-row input:focus, .picker-tools input:focus { border-color: rgba(77,163,255,.82); box-shadow: 0 0 0 4px rgba(12,92,171,.18); }
+.table-wrap tr:hover td { background: rgba(77,163,255,.055); }
+.template-card:hover, .campaign-card:hover { border-color: rgba(77,163,255,.45); box-shadow: 0 18px 38px rgba(0,0,0,.28); }
+:focus-visible { outline: 2px solid #4da3ff; outline-offset: 3px; }
+.form-field input[type='file'] { padding: 10px; border-style: dashed; cursor: pointer; }
+.form-field input[type='file']::file-selector-button { margin-right: 10px; padding: 7px 10px; border: 1px solid var(--line-strong); border-radius: 6px; color: var(--ink); background: var(--surface-high); cursor: pointer; }
+.attachment-field small { overflow-wrap: anywhere; }
+
+@media (max-width: 780px) { .sidebar { border-bottom-color: rgba(165,184,214,.12); }.topbar { background: rgba(11,18,32,.92); }.nav-item.active { box-shadow: inset 0 -3px var(--purple); } }
